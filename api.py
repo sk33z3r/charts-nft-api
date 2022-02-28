@@ -23,13 +23,13 @@ def get_chart(stock, filename, chart_title):
 
 @app.route('/lrc')
 def lrc():
-    if not os.path.exists(lrc_file) or time.time() - os.path.getmtime(filename) > (30 * 60):
+    if not os.path.exists(lrc_file) or time.time() - os.path.getmtime(lrc_file) > (30 * 60):
         get_chart("LRC-USD", lrc_file, "LRC-USD 30-day")
     return send_file(lrc_file, mimetype='image/png')
 
 @app.route('/gme')
 def gme():
-    if not os.path.exists(gme_file) or time.time() - os.path.getmtime(filename) > (30 * 60):
+    if not os.path.exists(gme_file) or time.time() - os.path.getmtime(gme_file) > (30 * 60):
         get_chart("GME", gme_file, "GME 30-day")
     return send_file(gme_file, mimetype='image/png')
 
