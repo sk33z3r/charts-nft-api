@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+
+  python:
+    build: .
+    container_name: python
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    networks:
+      python-api:
+        ipv4_address: 172.210.0.120
+
+networks:
+
+  python-api:
+    name: python-api
+    ipam:
+      config:
+        - subnet: 172.210.0.0/24
