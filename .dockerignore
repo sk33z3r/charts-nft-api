@@ -1,9 +1,9 @@
 .git/
 .gitignore
 README.md
-test-run.sh
+docker.sh
 __pycache__/
 docker-compose.yml
 Dockerfile
-server-run.sh
-db/
+metadata/
+*.png
