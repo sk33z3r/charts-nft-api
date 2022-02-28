@@ -4,7 +4,7 @@ services:
 
   python:
     build: .
-    container_name: python
+    container_name: python-nft-api
     restart: unless-stopped
     networks:
       python-api:
