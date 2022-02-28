@@ -14,7 +14,6 @@ COPY --from=build /usr/local/lib/python3.10 /usr/local/lib/python3.10
 # add the python files for the game
 ADD dockerfiles/run.sh /usr/local/bin/run
 ADD ./*.py /api/
-ADD ./*.png /api/
 # finish up container
 WORKDIR /api
 EXPOSE 5000

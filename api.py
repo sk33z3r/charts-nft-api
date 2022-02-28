@@ -1,58 +1,37 @@
 from flask import Flask, send_file
-import matplotlib.pyplot as plt
-import pandas as pd
 import os, time
+import mplfinance as mpf
+import pandas as pd
+import datetime as dt
+import pandas_datareader as pdr
 
 app = Flask(__name__)
-filename = "chart.png"
+gme_file = "gme.png"
+lrc_file = "lrc.png"
 
-def gen_chart():
-    os.remove(filename)
+def get_chart(stock, filename, chart_title):
+    kwargs = dict(type='candle', title=chart_title, mav=(3,6,9), volume=True, figratio=(11,8), figscale=0.85, style='mike', savefig=filename)
 
-    #create DataFrame
-    prices = pd.DataFrame({'open': [25, 22, 21, 19, 23, 21, 25, 29],
-                        'close': [24, 20, 17, 23, 22, 25, 29, 31],
-                        'high': [28, 27, 29, 25, 24, 26, 31, 37],
-                        'low': [22, 16, 14, 17, 19, 18, 22, 26]},
-                        index=pd.date_range("2021-01-01", periods=8, freq="d"))
+    if os.path.exists(filename):
+        os.remove(filename)
 
-    #create figure
-    plt.figure()
+    now = dt.datetime.now()
+    start = now - dt.timedelta(days=30)
 
-    #define width of candlestick elements
-    width = .4
-    width2 = .05
+    df = pdr.get_data_yahoo(stock, start, now)
+    mpf.plot(df, **kwargs)
 
-    #define up and down prices
-    up = prices[prices.close>=prices.open]
-    down = prices[prices.close<prices.open]
+@app.route('/lrc')
+def lrc():
+    if not os.path.exists(lrc_file) or time.time() - os.path.getmtime(filename) > (30 * 60):
+        get_chart("LRC-USD", lrc_file, "LRC-USD 30-day")
+    return send_file(lrc_file, mimetype='image/png')
 
-    #define colors to use
-    col1 = 'green'
-    col2 = 'red'
-
-    #plot up prices
-    plt.bar(up.index,up.close-up.open,width,bottom=up.open,color=col1)
-    plt.bar(up.index,up.high-up.close,width2,bottom=up.close,color=col1)
-    plt.bar(up.index,up.low-up.open,width2,bottom=up.open,color=col1)
-
-    #plot down prices
-    plt.bar(down.index,down.close-down.open,width,bottom=down.open,color=col2)
-    plt.bar(down.index,down.high-down.open,width2,bottom=down.open,color=col2)
-    plt.bar(down.index,down.low-down.close,width2,bottom=down.close,color=col2)
-
-    #rotate x-axis tick labels
-    plt.xticks(rotation=45, ha='right')
-
-    #save the candlestick chart
-    plt.savefig(filename)
-
-
-@app.route('/')
-def index():
-    if time.time() - os.path.getmtime(filename) > (5 * 3):
-        gen_chart()
-    return send_file(filename, mimetype='image/png')
+@app.route('/gme')
+def gme():
+    if not os.path.exists(gme_file) or time.time() - os.path.getmtime(filename) > (30 * 60):
+        get_chart("GME", gme_file, "GME 30-day")
+    return send_file(gme_file, mimetype='image/png')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
