@@ -1,11 +1,15 @@
 from flask import Flask, send_file
+from flask_cors import CORS, cross_origin
 import os, time
 import mplfinance as mpf
 import pandas as pd
 import datetime as dt
 import pandas_datareader as pdr
 
+FLASK_ENV = "production"
 app = Flask(__name__)
+cors = CORS(app)
+
 gme_file = "gme.png"
 lrc_file = "lrc.png"
 
