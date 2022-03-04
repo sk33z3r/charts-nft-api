@@ -13,12 +13,11 @@ cors = CORS(app)
 price_label = "Price ($USD)"
 vol_label = "Volume"
 
-lrc_file = "lrc.png"
 lrc_colors = mpf.make_marketcolors(up='white',
                                    down='black',
                                    edge='inherit',
                                    wick='black',
-                                   volume={ 'up': 'steelblue', 'down': 'lightsteelblue' })
+                                   volume={ 'up': 'lightsteelblue', 'down': 'steelblue' })
 
 lrc_style = mpf.make_mpf_style(base_mpl_style='dark_background',
                                marketcolors=lrc_colors,
@@ -31,7 +30,6 @@ lrc_style = mpf.make_mpf_style(base_mpl_style='dark_background',
                                gridaxis='both',
                                y_on_right=False)
 
-gme_file = "gme.png"
 gme_colors = mpf.make_marketcolors(up='white',
                                    down='black',
                                    edge='inherit',
@@ -49,15 +47,15 @@ gme_style = mpf.make_mpf_style(base_mpl_style='dark_background',
                                gridaxis='both',
                                y_on_right=False)
 
-def get_chart(stock, filename, chart_title):
+def get_chart(stock, filename, chart_title, timeframe, averages):
     if stock == "LRC-USD":
         kwargs = dict(type='candle',
-                      figscale=0.75,
+                      figscale=1,
                       figratio=(16,9),
                       title=chart_title,
                       ylabel=price_label,
                       ylabel_lower=vol_label,
-                      mav=(5, 10, 20),
+                      mav=averages,
                       volume=True,
                       xrotation=20,
                       style=lrc_style,
@@ -65,12 +63,12 @@ def get_chart(stock, filename, chart_title):
 
     elif stock == "GME":
         kwargs = dict(type='candle',
-                      figscale=0.75,
+                      figscale=1,
                       figratio=(16,9),
                       title=chart_title,
                       ylabel=price_label,
                       ylabel_lower=vol_label,
-                      mav=(5, 10, 20),
+                      mav=averages,
                       volume=True,
                       show_nontrading=True,
                       xrotation=20,
@@ -81,21 +79,41 @@ def get_chart(stock, filename, chart_title):
         os.remove(filename)
 
     now = dt.datetime.now()
-    start = now - dt.timedelta(days=30)
+    start = now - dt.timedelta(days=timeframe)
 
     df = pdr.get_data_yahoo(stock, start, now)
     mpf.plot(df, **kwargs)
 
 @app.route('/lrc')
 def lrc():
-    if not os.path.exists(lrc_file) or time.time() - os.path.getmtime(lrc_file) > (60 * 60):
-        get_chart("LRC-USD", lrc_file, "\n\nLRC-USD 30-day Candles\nwith 5-, 10-, and 20-day SMA")
+    lrc_file = "lrc_30_day.png"
+    mav = (5, 10, 20)
+    if not os.path.exists(lrc_file) or (time.time() - os.path.getmtime(lrc_file)) > 3600:
+        get_chart("LRC-USD", lrc_file, "\n\nLRC-USD 30-day Candles\nwith 5-, 10-, and 20-day SMA", 31, mav)
+    return send_file(lrc_file, mimetype='image/png')
+
+@app.route('/lrc-15-day')
+def lrc_15_day():
+    lrc_file = "lrc_15_day.png"
+    mav = 5
+    if not os.path.exists(lrc_file) or (time.time() - os.path.getmtime(lrc_file)) > 3600:
+        get_chart("LRC-USD", lrc_file, "\n\nLRC-USD 15-day Candles\nwith 5-day SMA", 15, mav)
+    return send_file(lrc_file, mimetype='image/png')
+
+@app.route('/lrc-5-day')
+def lrc_5_day():
+    lrc_file = "lrc_5_day.png"
+    mav = 5
+    if not os.path.exists(lrc_file) or (time.time() - os.path.getmtime(lrc_file)) > 3600:
+        get_chart("LRC-USD", lrc_file, "\n\nLRC-USD 5-day Candles", 5, mav)
     return send_file(lrc_file, mimetype='image/png')
 
 @app.route('/gme')
 def gme():
-    if not os.path.exists(gme_file) or time.time() - os.path.getmtime(gme_file) > (60 * 60):
-        get_chart("GME", gme_file, "\n\nGME 30-day Candles\nwith 5-, 10-, and 20-day SMA")
+    gme_file = "gme_30_day.png"
+    mav = (2, 5, 10)
+    if not os.path.exists(gme_file) or (time.time() - os.path.getmtime(gme_file)) > 3600:
+        get_chart("GME", gme_file, "\n\nGME 30-day Candles\nwith 2-, 5-, and 10-day SMA", 30, mav)
     return send_file(gme_file, mimetype='image/png')
 
 if __name__ == '__main__':
